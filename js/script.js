@@ -1,97 +1,60 @@
-    const buttons = document.querySelectorAll(".tab-button");
-    const panels = document.querySelectorAll(".panel");
-    const disabledLinks = document.querySelectorAll(".button.disabled");
-    const tabLinks = document.querySelectorAll("[data-tab-link]");
-    const quoteSlides = document.querySelectorAll(".quote-slide");
-    const dotsContainer = document.querySelector(".carousel-dots");
-    const prevQuote = document.querySelector(".carousel-prev");
-    const nextQuote = document.querySelector(".carousel-next");
-    const scrollTopButton = document.querySelector(".scroll-top");
-    const treatmentToggles = document.querySelectorAll(".treatment-toggle");
-    const productToggles = document.querySelectorAll(".product-toggle");
-    let currentQuote = 0;
+﻿const audio = document.getElementById("audioBook");
+const playButton = document.getElementById("playButton");
+const logo = document.getElementById("logo");
 
-    function activateTab(tabName) {
-      buttons.forEach((button) => {
-        const isActive = button.dataset.tab === tabName;
-        button.setAttribute("aria-selected", String(isActive));
-      });
+/* O audiobook nunca deve iniciar automaticamente. */
+audio.pause();
+audio.currentTime = 0;
 
-      panels.forEach((panel) => {
-        panel.classList.toggle("active", panel.id === tabName);
-      });
+/* Orientação acessível do botão de início. */
+function orientarInicio() {
+  if (!audio.paused) return;
 
-      const target = document.getElementById(tabName);
-      if (target) {
-        target.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    }
+  speechSynthesis.cancel();
 
-    buttons.forEach((button) => {
-      button.addEventListener("click", () => activateTab(button.dataset.tab));
-    });
+  const fala = new SpeechSynthesisUtterance(
+    "Clique aqui para iniciar o audiobook."
+  );
 
-    tabLinks.forEach((link) => {
-      link.addEventListener("click", () => activateTab(link.dataset.tabLink));
-    });
+  fala.lang = "pt-BR";
+  fala.rate = 1;
+  fala.pitch = 1;
+  fala.volume = 1;
 
-    disabledLinks.forEach((link) => {
-      link.addEventListener("click", (event) => event.preventDefault());
-    });
+  speechSynthesis.speak(fala);
+}
 
-    function showQuote(index) {
-      if (!quoteSlides.length) return;
+playButton.addEventListener("mouseenter", orientarInicio);
+playButton.addEventListener("focus", orientarInicio);
+playButton.addEventListener("touchstart", orientarInicio, { passive: true });
 
-      currentQuote = (index + quoteSlides.length) % quoteSlides.length;
+/* Inicia apenas depois da ação do usuário. */
+playButton.addEventListener("click", async function () {
+  speechSynthesis.cancel();
 
-      quoteSlides.forEach((slide, slideIndex) => {
-        slide.classList.toggle("active", slideIndex === currentQuote);
-      });
+  try {
+    await audio.play();
+    logo.classList.add("playing");
+    playButton.style.display = "none";
+  } catch (erro) {
+    playButton.style.display = "block";
+    console.error("Não foi possível iniciar o audiobook.", erro);
+  }
+});
 
-      document.querySelectorAll(".carousel-dot").forEach((dot, dotIndex) => {
-        dot.classList.toggle("active", dotIndex === currentQuote);
-      });
-    }
+/* Controle visual do logo. */
+audio.addEventListener("play", function () {
+  speechSynthesis.cancel();
+  logo.classList.add("playing");
+  playButton.style.display = "none";
+});
 
-    if (quoteSlides.length && dotsContainer) {
-      quoteSlides.forEach((_, index) => {
-        const dot = document.createElement("span");
-        dot.className = `carousel-dot${index === 0 ? " active" : ""}`;
-        dotsContainer.appendChild(dot);
-      });
+audio.addEventListener("pause", function () {
+  logo.classList.remove("playing");
+  playButton.style.display = "block";
+});
 
-      prevQuote?.addEventListener("click", () => showQuote(currentQuote - 1));
-      nextQuote?.addEventListener("click", () => showQuote(currentQuote + 1));
-
-      window.setInterval(() => {
-        showQuote(currentQuote + 1);
-      }, 11000);
-    }
-
-    if (scrollTopButton) {
-      window.addEventListener("scroll", () => {
-        scrollTopButton.classList.toggle("visible", window.scrollY > 520);
-      });
-
-      scrollTopButton.addEventListener("click", () => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      });
-    }
-
-    treatmentToggles.forEach((toggle) => {
-      toggle.addEventListener("click", () => {
-        const card = toggle.closest(".treatment-card");
-        const isOpen = card.classList.toggle("open");
-        toggle.setAttribute("aria-expanded", String(isOpen));
-        toggle.querySelector(".toggle-icon").textContent = isOpen ? "−" : "+";
-      });
-    });
-
-    productToggles.forEach((toggle) => {
-      toggle.addEventListener("click", () => {
-        const card = toggle.closest(".product-card");
-        const isOpen = card.classList.toggle("open");
-        toggle.setAttribute("aria-expanded", String(isOpen));
-        toggle.querySelector(".toggle-icon").textContent = isOpen ? "−" : "+";
-      });
-    });
+audio.addEventListener("ended", function () {
+  logo.classList.remove("playing");
+  playButton.style.display = "block";
+});
