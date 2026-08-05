@@ -1,7 +1,5 @@
 # e-ManejaDor — Versão Acessível
 
-![MANEJADOR](img/manejador.jpg)
-
 Versão acessível do produto educacional **e-ManejaDor**, desenvolvida com foco na acessibilidade digital para pessoas com deficiência visual.
 
 A plataforma converte o conteúdo textual do guia educacional em formato audiobook, ampliando o acesso às informações sobre manejo da dor por meio de recursos sonoros compatíveis com diferentes dispositivos.
